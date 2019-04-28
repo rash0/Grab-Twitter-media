@@ -98,7 +98,7 @@ const pageScroll = require('./PageScroll')
 //   }
 // }
 
-async function get_media() {
+async function get_media(username) {
   const browser = await puppeteer.launch({
     headless: true,
     args: ['--no-sandbox']
@@ -117,14 +117,14 @@ async function get_media() {
   // await page.waitForNavigation()
 
   // Navigate to the account
-  await page.goto(`https://www.twitter.com/Kawaiigifs`)
+  await page.goto(`https://www.twitter.com/${username}`)
 
   // Get the media count
   const tweets_number = await page.evaluate(() => document.querySelector('.PhotoRail-headingWithCount.js-nav').innerText.trim().match(/\d+/)[0])
   // await console.log(tweets_number)
 
   // Navigate to media
-  await page.goto(`https://www.twitter.com/Kawaiigifs/media`)
+  await page.goto(`https://www.twitter.com/${username}/media`)
 
   // Scroll till the bottom of the page
   await pageScroll(page, tweets_number)
@@ -135,8 +135,8 @@ async function get_media() {
   return page_content
 }
 
-async function filterContent(){
-  var allContent = await get_media()
+async function filterContent(username){
+  var allContent = await get_media(username)
 
   const $ = await cheerio.load(allContent, { normalizeWhitespace: true })
 
@@ -223,15 +223,15 @@ const extendTimeoutMiddleware = (req, res, next) => {
   next();
 };
 
-app.use('*', extendTimeoutMiddleware);
+app.use('/:username', extendTimeoutMiddleware);
 
-app.get('*', function(req, res) {
+app.get('/:username', function(req, res) {
   res.setHeader('Cache-Control', 'no-cache')
   res.setHeader('Content-Type', 'application/json')
   res.setHeader('Access-Control-Allow-Methods', 'GET')
-  // const username = req.params.username
+  const username = req.params.username
   // console.log(req.params.username)
-  filterContent()
+  filterContent(username)
   .then(r => res.status(200).send(r).end())
   // .then(() => console.info('Execution time: %dms',  new Date() - start))
   .catch(err => console.log(err))
