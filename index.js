@@ -100,7 +100,8 @@ const pageScroll = require('./PageScroll')
 
 async function get_media(username) {
   const browser = await puppeteer.launch({
-    headless: true
+    headless: true,
+    args: ['--no-sandbox']
   });
 
   const page = await browser.newPage();
